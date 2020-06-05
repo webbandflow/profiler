@@ -1,0 +1,20 @@
+{
+  "name": "webbandflow/profiler",
+  "description": "",
+  "license": "MIT",
+  "type": "library",
+  "require": {
+    "php": ">=5.5.9",
+    "ext-json": "*",
+		"guzzlehttp/guzzle": "6.3.*"
+  },
+  "require-dev": {
+  },
+  "repositories": [
+  ],
+  "autoload": {
+    "psr-4": {
+      "WebbAndFlow\\Profiler\\": "src/"
+    }
+  }
+}

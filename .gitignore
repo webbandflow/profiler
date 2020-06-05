@@ -1,0 +1,6 @@
+.idea/
+.scannerwork/
+vendor/
+composer.lock
+phpunit.coverage.xml
+phpunit.report.xml
