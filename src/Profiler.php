@@ -2,17 +2,44 @@
 
 namespace WebbAndFlow\Profiler;
 
+/**
+ * Class Profiler
+ *
+ * This class collects runtime analytical data of the system,
+ * and sends to the Webb & Flow Profiler MicroService at the end of the process, if needed.
+ *
+ * This class does anything only if the request has the PROFILE or PROFILER query parameter and it has a valid value,
+ * to prevent any unnecessary memory usage.
+ *
+ * This class should be used as static, so one process can have one profile at a time.
+ * Also it helps to prevent the need of dependency injection into every object and method which should be analysed.
+ *
+ * @package WebbAndFlow\Profiler
+ */
 class Profiler {
-	/** @var bool */
-	protected static $enabled = false;
-	/** @var array */
-	protected static $events = [];
-	/** @var array */
-	protected static $processes = [];
-	
 	/**
-	 * determines profile name from $_GET parameters
-	 * PROFILER and PROFILE
+   * Is the profiler enabled?
+   *
+   * @var bool
+   */
+	protected static $enabled = false;
+
+	/**
+   * The list of the events to be sent
+   *
+   * @var array
+   */
+	protected static $events = [];
+
+	/**
+   * The list of the processes to be sent
+   *
+   * @var array
+   */
+	protected static $processes = [];
+
+	/**
+	 * Determines the profile name from $_GET parameters PROFILER and PROFILE
 	 *
 	 * @return null|string
 	 */
@@ -29,62 +56,68 @@ class Profiler {
 		) {
 			return $_GET['PROFILE'];
 		}
-		
+
 		return null;
 	}
-	
+
 	/**
-	 * enable profiler if there is a
-	 * profile name specified in $_GET
+	 * Enables profiler if there is a profile name specified in $_GET
 	 */
 	public static function enableIfHasProfile() {
 		if (static::getProfile()) {
 			static::enable();
 		}
 	}
-	
+
 	/**
+   * Getter for the static::$events property
+   *
 	 * @return array
 	 */
 	public static function getEvents() {
 		return static::$events;
 	}
-	
+
 	/**
+   * Getter for the static::$processes property
+   *
 	 * @return array
 	 */
 	public static function getProcesses() {
 		return static::$processes;
 	}
-	
+
 	/**
+   * Getter for the static::$enabled property
+   *
 	 * @return bool
 	 */
 	public static function isEnabled() {
 		return static::$enabled;
 	}
-	
+
 	/**
-	 * enable profiler
+	 * Enables profiler manually
 	 */
 	public static function enable() {
 		static::$enabled = true;
 	}
-	
+
 	/**
-	 * disable profiler
+	 * Disables profiler manually
 	 */
 	public static function disable() {
 		static::$enabled = false;
 	}
-	
+
 	/**
-	 * tracks an event, if the profiler is enabled
-	 * if enabled, returns true
+	 * Tracks an event, if the profiler is enabled
 	 *
-	 * @param string $event
-	 * @param string $param1
-	 * @param string $param2
+   * Returns true, if the event is tracked.
+	 *
+	 * @param string $event The name of the event
+	 * @param string $param1 The primary parameter of the event
+	 * @param string $param2 The secondary parameter of the event
 	 *
 	 * @return bool
 	 */
@@ -104,17 +137,18 @@ class Profiler {
 			'p1' => $param1,
 			'p2' => $param2,
 		];
-		
+
 		return true;
 	}
-	
+
 	/**
-	 * tracks a process start, if the profiler is enabled
-	 * if enabled, returns true
+	 * Tracks a process start, if the profiler is enabled
 	 *
-	 * @param string $process
-	 * @param string $param1
-	 * @param string $param2
+   * Returns true, if the process is tracked.
+	 *
+	 * @param string $process The name of the process
+   * @param string $param1 The primary parameter of the process
+   * @param string $param2 The secondary parameter of the process
 	 *
 	 * @return bool
 	 */
@@ -138,15 +172,16 @@ class Profiler {
 			'p2' => $param2,
 			'f' => null,
 		];
-		
+
 		return true;
 	}
-	
+
 	/**
-	 * tracks a process finish, if the profiler is enabled
-	 * if enabled, returns true
-	 *
-	 * @param string $process
+	 * Tracks a process finish, if the profiler is enabled
+   *
+   * Returns true, if the process is tracked.
+   *
+   * @param string $process The name of the process
 	 *
 	 * @return bool
 	 */
@@ -162,21 +197,20 @@ class Profiler {
 			return true;
 		}
 		static::$processes[$process][$lastIndex]['f'] = microtime(true);
-		
+
 		return true;
 	}
-	
+
 	/**
-	 * saves tracked data to Webb & Flow Profiler MicroService,
-	 * if the profiler is enabled
-	 * if enabled, returns the API Response
+	 * Saves tracked data to Webb & Flow Profiler MicroService, if the profiler is enabled
 	 *
-	 * if $profile is empty, it uses the profile name
-	 * determined by $_GET parameters
+   * If enabled, returns the API Response.
 	 *
-	 * @param $projectId
-	 * @param $profile
-	 * @param $entity
+	 * If the $profile parameter is empty, it uses the profile name determined by $_GET parameters.
+	 *
+	 * @param string $projectId The identifier of the Profiler MicroService project
+	 * @param string $profile The name of the profile
+	 * @param string $entity The name of the entity, to which the data should be saved
 	 *
 	 * @return array|null
 	 */
@@ -184,7 +218,7 @@ class Profiler {
 		if (!static::$enabled) {
 			return null;
 		}
-		
+
 		return NativeClient::add(
 			$projectId,
 			$profile ?: static::getProfile(),
